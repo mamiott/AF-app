@@ -28,8 +28,8 @@
 
 - コードを変更するたびに、変更内容をコミットして GitHub にプッシュする。
 - コミットメッセージは日本語で、変更内容が分かるように簡潔に書く。
-- プッシュ先は下記の GitHub リポジトリ（`origin`）とする。
+- プッシュ先は下記の GitHub リポジトリ（リモート名 `af-app`）のみとする。`origin`（quiz-app）にはプッシュしない。
 
 ## GitHubリポジトリ
 
-https://github.com/mamiott/quiz-app.git
+https://github.com/mamiott/AF-app.git
