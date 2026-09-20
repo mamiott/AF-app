@@ -15,7 +15,19 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <script type="text/babel">
-    const { useState } = React;
+    const { useState, useEffect } = React;
+
+    const STORAGE_KEY = "task-board:tasks";
+
+    // localStorage からタスクを読み込む（失敗時は空配列）
+    function loadTasks() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        return Array.isArray(saved) ? saved : [];
+      } catch (e) {
+        return [];
+      }
+    }
 
     // タスク1件分の表示
     function TaskItem({ task, onToggle, onDelete }) {
@@ -42,8 +54,17 @@
     }
 
     function App() {
-      const [tasks, setTasks] = useState([]);
+      const [tasks, setTasks] = useState(loadTasks);
       const [text, setText] = useState("");
+
+      // タスクが変わるたびに localStorage へ保存する
+      useEffect(() => {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+        } catch (e) {
+          // 保存できない環境（プライベートモード等）では何もしない
+        }
+      }, [tasks]);
 
       // タスクを追加する（空文字は無視）
       const addTask = (e) => {
