@@ -23,3 +23,7 @@
 ## 確認方法
 
 - ブラウザで `index.html` を開いて動作確認する。
+
+## GitHubリポジトリ
+
+https://github.com/mamiott/quiz-app.git
