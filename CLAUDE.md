@@ -24,6 +24,12 @@
 
 - ブラウザで `index.html` を開いて動作確認する。
 
+## Git運用ルール
+
+- コードを変更するたびに、変更内容をコミットして GitHub にプッシュする。
+- コミットメッセージは日本語で、変更内容が分かるように簡潔に書く。
+- プッシュ先は下記の GitHub リポジトリ（`origin`）とする。
+
 ## GitHubリポジトリ
 
 https://github.com/mamiott/quiz-app.git
