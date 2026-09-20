@@ -1,0 +1,145 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  background: #fffbe0;
+  color: #22303f;
+  font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+}
+
+.quiz {
+  width: 100%;
+  max-width: 560px;
+  padding: 28px 24px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+}
+
+.quiz__title {
+  margin: 0 0 20px;
+  font-size: 1.3rem;
+  text-align: center;
+  color: #2f6fed;
+}
+
+.quiz__progress {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: #6b7a8c;
+}
+
+.quiz__question {
+  margin: 0 0 20px;
+  font-size: 1.15rem;
+  line-height: 1.6;
+}
+
+.quiz__choices {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.choice {
+  width: 100%;
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 1rem;
+  font-family: inherit;
+  color: inherit;
+  background: #fffef5;
+  border: 2px solid #d5dde8;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.choice:hover:not(:disabled) {
+  background: #e8f0ff;
+  border-color: #2f6fed;
+}
+
+.choice:disabled {
+  cursor: default;
+}
+
+.choice--correct {
+  background: #e3f6e8;
+  border-color: #2e9d4f;
+}
+
+.choice--wrong {
+  background: #fde8e8;
+  border-color: #d64545;
+}
+
+.quiz__feedback {
+  min-height: 1.6em;
+  margin: 16px 0 0;
+  font-weight: bold;
+}
+
+.quiz__feedback--correct {
+  color: #2e9d4f;
+}
+
+.quiz__feedback--wrong {
+  color: #d64545;
+}
+
+.button {
+  display: block;
+  margin: 16px auto 0;
+  padding: 12px 32px;
+  font-size: 1rem;
+  font-family: inherit;
+  color: #fff;
+  background: #2f6fed;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.button:hover {
+  background: #1f58c9;
+}
+
+.button--sub {
+  margin: 0 0 16px;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  color: #2f6fed;
+  background: #fff;
+  border: 2px solid #2f6fed;
+}
+
+.button--sub:hover {
+  background: #e8f0ff;
+}
+
+.quiz__score {
+  margin: 0 0 8px;
+  font-size: 1.6rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.quiz__message {
+  margin: 0;
+  text-align: center;
+  color: #6b7a8c;
+}
+
+[hidden] {
+  display: none !important;
+}
