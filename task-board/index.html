@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>タスクボード</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- ビルドツール不要で動かすため、React と Babel を CDN から読み込む -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    // タスク1件分の表示
+    function TaskItem({ task, onToggle, onDelete }) {
+      return (
+        <li className={"task" + (task.done ? " task--done" : "")}>
+          <label className="task__label">
+            <input
+              type="checkbox"
+              checked={task.done}
+              onChange={() => onToggle(task.id)}
+            />
+            <span className="task__text">{task.text}</span>
+          </label>
+          <button
+            type="button"
+            className="task__delete"
+            onClick={() => onDelete(task.id)}
+            aria-label={`「${task.text}」を削除`}
+          >
+            削除
+          </button>
+        </li>
+      );
+    }
+
+    function App() {
+      const [tasks, setTasks] = useState([]);
+      const [text, setText] = useState("");
+
+      // タスクを追加する（空文字は無視）
+      const addTask = (e) => {
+        e.preventDefault();
+        const trimmed = text.trim();
+        if (!trimmed) return;
+        setTasks([...tasks, { id: Date.now(), text: trimmed, done: false }]);
+        setText("");
+      };
+
+      // 完了・未完了を切り替える
+      const toggleTask = (id) => {
+        setTasks(tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+      };
+
+      // タスクを削除する
+      const deleteTask = (id) => {
+        setTasks(tasks.filter((t) => t.id !== id));
+      };
+
+      return (
+        <main className="board">
+          <h1 className="board__title">タスクボード</h1>
+
+          <form className="form" onSubmit={addTask}>
+            <input
+              type="text"
+              className="form__input"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="新しいタスクを入力"
+              aria-label="新しいタスク"
+            />
+            <button type="submit" className="form__button">追加</button>
+          </form>
+
+          {tasks.length === 0 ? (
+            <p className="board__empty">タスクはまだありません。</p>
+          ) : (
+            <ul className="tasks">
+              {tasks.map((task) => (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  onToggle={toggleTask}
+                  onDelete={deleteTask}
+                />
+              ))}
+            </ul>
+          )}
+        </main>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  font-family: system-ui, -apple-system, "Hiragino Sans", sans-serif;
+  background: #f4f6f8;
+  color: #222;
+}
+
+.board {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.board__title {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+}
+
+.board__empty {
+  margin: 16px 0 0;
+  color: #888;
+}
+
+/* 入力フォーム */
+.form {
+  display: flex;
+  gap: 8px;
+}
+
+.form__input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.form__button {
+  padding: 10px 16px;
+  font-size: 1rem;
+  color: #fff;
+  background: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.form__button:hover {
+  background: #2563eb;
+}
+
+/* タスク一覧 */
+.tasks {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.task__label {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.task__text {
+  overflow-wrap: anywhere;
+}
+
+/* 完了済みはグレー表示 */
+.task--done .task__text {
+  color: #aaa;
+  text-decoration: line-through;
+}
+
+.task__delete {
+  padding: 6px 10px;
+  font-size: 0.875rem;
+  color: #c0392b;
+  background: none;
+  border: 1px solid #e0b4ae;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.task__delete:hover {
+  background: #fdecea;
+}
