@@ -50,8 +50,15 @@ function playResultSound(isCorrect) {
   if (audioContext.state === "suspended") audioContext.resume();
 
   if (isCorrect) {
-    playTone(880, 0, 0.25);
-    playTone(1319, 0.25, 0.5);
+    // ドミソド↑の分散和音を鳴らしてから、最後に和音を重ねてファンファーレにする
+    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+      playTone(freq, i * 0.08, 0.3, "triangle", 0.22);
+    });
+    [1046.5, 1318.51, 1567.98].forEach((freq) => {
+      playTone(freq, 0.32, 0.9, "triangle", 0.16);
+    });
+    // 高音を添えてきらめきを出す
+    playTone(2093.0, 0.42, 0.5, "sine", 0.08);
   } else {
     playTone(110, 0, 0.6, "sawtooth", 0.25);
   }

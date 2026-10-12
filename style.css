@@ -9,9 +9,39 @@ body {
   justify-content: center;
   align-items: center;
   padding: 16px;
-  background: #fffbe0;
+  /* 虹色のグラデーションをゆっくり流して背景にする */
+  background: linear-gradient(
+    120deg,
+    #ff5f6d,
+    #ffa751,
+    #f9f871,
+    #5ddf9d,
+    #4facfe,
+    #a17fe0,
+    #f473b9,
+    #ff5f6d
+  );
+  background-size: 400% 400%;
+  background-attachment: fixed;
+  animation: rainbow-flow 18s linear infinite;
   color: #22303f;
   font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+}
+
+@keyframes rainbow-flow {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 400% 50%;
+  }
+}
+
+/* 動きを減らす設定の端末ではアニメーションを止める */
+@media (prefers-reduced-motion: reduce) {
+  body {
+    animation: none;
+  }
 }
 
 .quiz {
@@ -20,7 +50,7 @@ body {
   padding: 28px 24px;
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.22);
 }
 
 .quiz__title {
