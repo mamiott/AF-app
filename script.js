@@ -1,36 +1,4 @@
-// クイズの問題データ（answer は choices の正解位置。0 始まり）
-const questions = [
-  {
-    text: "日本で一番面積が大きい都道府県はどこ？",
-    choices: ["北海道", "岩手県", "長野県", "福島県"],
-    answer: 0,
-    explanation: "北海道は日本の総面積の約2割を占めています。"
-  },
-  {
-    text: "1年のうち、日本で昼の長さが最も長くなる日は？",
-    choices: ["春分の日", "夏至", "秋分の日", "冬至"],
-    answer: 1,
-    explanation: "夏至は太陽が最も高く昇り、昼が一番長くなります。"
-  },
-  {
-    text: "水が氷になる温度は、1気圧のもとで何℃？",
-    choices: ["-10℃", "0℃", "4℃", "10℃"],
-    answer: 1,
-    explanation: "水は1気圧では0℃で凍り始めます。"
-  },
-  {
-    text: "一般に、1週間は何日？",
-    choices: ["5日", "6日", "7日", "8日"],
-    answer: 2,
-    explanation: "月曜から日曜までの7日間が1週間です。"
-  },
-  {
-    text: "日本の国会が二つの議院で構成されているのはどれ？",
-    choices: ["衆議院と参議院", "貴族院と衆議院", "元老院と参議院", "上院と下院"],
-    answer: 0,
-    explanation: "日本の国会は衆議院と参議院の二院制です。"
-  }
-];
+// 問題データは questions.js の questions 定数から読み込む
 
 const questionScreen = document.getElementById("question-screen");
 const resultScreen = document.getElementById("result-screen");
@@ -152,12 +120,18 @@ function showResult() {
   resultScreen.hidden = false;
   scoreEl.textContent = `${questions.length}問中${score}問正解`;
 
-  if (score === questions.length) {
-    scoreMessageEl.textContent = "全問正解！お見事です！";
-  } else if (score >= 3) {
-    scoreMessageEl.textContent = "よくできました！";
+  // 正答率に応じてメッセージを変える（問題数が変わっても使えるようにする）
+  const rate = score / questions.length;
+  if (rate === 1) {
+    scoreMessageEl.textContent = "全問正解！栄養サポートも任せられるレベルです！";
+  } else if (rate >= 0.8) {
+    scoreMessageEl.textContent = "素晴らしい！実践でもしっかり活かせています。";
+  } else if (rate >= 0.6) {
+    scoreMessageEl.textContent = "good！あと一歩で栄養マスターです。";
+  } else if (rate >= 0.4) {
+    scoreMessageEl.textContent = "基本は押さえています。解説を読み返してみましょう。";
   } else {
-    scoreMessageEl.textContent = "もう一度挑戦してみましょう！";
+    scoreMessageEl.textContent = "ここからが伸びしろ。もう一度挑戦してみましょう！";
   }
 }
 
