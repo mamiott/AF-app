@@ -74,12 +74,61 @@ function playTone(freq, start, duration, type = "sine", volume = 0.2) {
   osc.stop(t + duration);
 }
 
-// 正解音（ピンポン）または不正解音（ブー）を鳴らす
-function playResultSound(isCorrect) {
+// 音を鳴らせる状態にする（鳴らせない環境では false を返す）
+function ensureAudio() {
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
-  if (!AudioCtx) return;
+  if (!AudioCtx) return false;
   if (!audioContext) audioContext = new AudioCtx();
   if (audioContext.state === "suspended") audioContext.resume();
+  return true;
+}
+
+// ボタンを押したときの軽いクリック音
+function playClickSound() {
+  if (!ensureAudio()) return;
+  playTone(880, 0, 0.08, "sine", 0.12);
+}
+
+// 復習（間違えた問題への再挑戦）が始まるときの上昇音
+function playRetryStartSound() {
+  if (!ensureAudio()) return;
+  [392.0, 523.25, 659.25].forEach((freq, i) => {
+    playTone(freq, i * 0.12, 0.25, "square", 0.08);
+  });
+}
+
+// 復習で正解したときに、通常の正解音に重ねる「レベルアップ」音
+function playLevelUpSound() {
+  if (!ensureAudio()) return;
+  [1318.51, 1567.98, 2093.0, 2637.02].forEach((freq, i) => {
+    playTone(freq, 0.9 + i * 0.07, 0.25, "sine", 0.07);
+  });
+}
+
+// 結果発表の音（正答率が高いほど華やかなメロディにする）
+function playFinishSound(rate) {
+  if (!ensureAudio()) return;
+  // ドラムロール風に低音を細かく連打する
+  for (let i = 0; i < 10; i++) {
+    playTone(150, i * 0.05, 0.05, "triangle", 0.15);
+  }
+  if (rate >= 0.8) {
+    // ソ・ソ・ソ・ド〜の勝利ファンファーレ
+    [[783.99, 0.6, 0.15], [783.99, 0.78, 0.15], [783.99, 0.96, 0.15], [1046.5, 1.14, 0.9]].forEach(([freq, start, dur]) => {
+      playTone(freq, start, dur, "square", 0.1);
+    });
+    [523.25, 659.25, 783.99].forEach((freq) => playTone(freq, 1.14, 1.0, "triangle", 0.12));
+  } else {
+    // やさしい上昇メロディ
+    [523.25, 659.25, 783.99].forEach((freq, i) => {
+      playTone(freq, 0.6 + i * 0.18, 0.4, "triangle", 0.16);
+    });
+  }
+}
+
+// 正解音（ファンファーレ）または不正解音（ブー）を鳴らす
+function playResultSound(isCorrect) {
+  if (!ensureAudio()) return;
 
   if (isCorrect) {
     // ドミソド↑の分散和音を鳴らしてから、最後に和音を重ねてファンファーレにする
@@ -146,6 +195,7 @@ function selectAnswer(selected) {
 
   if (isCorrect) {
     if (isRetry) {
+      playLevelUpSound();
       const message = encouragements[Math.floor(Math.random() * encouragements.length)];
       feedbackEl.textContent = `正解！ ${message} ${q.explanation}`;
     } else {
@@ -181,6 +231,7 @@ function showResult() {
 
   // 正答率に応じてメッセージを変える（問題数が変わっても使えるようにする）
   const rate = score / questions.length;
+  playFinishSound(rate);
   if (rate === 1) {
     scoreMessageEl.textContent = "全問正解！栄養サポートも任せられるレベルです！";
   } else if (rate >= 0.8) {
@@ -215,12 +266,16 @@ function start() {
 if (!("speechSynthesis" in window)) {
   speakButton.hidden = true;
 }
-speakButton.addEventListener("click", speakQuestion);
+speakButton.addEventListener("click", () => {
+  playClickSound();
+  speakQuestion();
+});
 
 nextButton.addEventListener("click", () => {
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
   position++;
   if (position < queue.length) {
+    playClickSound();
     showQuestion();
   } else if (retryQueue.length > 0) {
     // 間違えた問題だけを集めて、もう一度出題する
@@ -228,12 +283,16 @@ nextButton.addEventListener("click", () => {
     retryQueue = [];
     position = 0;
     isRetry = true;
+    playRetryStartSound();
     showQuestion();
   } else {
     showResult();
   }
 });
 
-restartButton.addEventListener("click", start);
+restartButton.addEventListener("click", () => {
+  playClickSound();
+  start();
+});
 
 start();
