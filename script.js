@@ -13,8 +13,40 @@ const restartButton = document.getElementById("restart-button");
 
 const speakButton = document.getElementById("speak-button");
 
-let currentIndex = 0;
+// 出題順（questions のインデックス）と、その中の現在位置
+let queue = [];
+let position = 0;
+// 間違えた問題のインデックス。最後にまとめて再出題する
+let retryQueue = [];
+// 復習（間違えた問題の再挑戦）中かどうか
+let isRetry = false;
+// 1周目で正解した数（復習での正解はスコアに含めない）
 let score = 0;
+// 表示中の選択肢（シャッフル後）
+let currentChoices = [];
+
+// 復習で正解したときに表示する励ましの言葉
+const encouragements = [
+  "今度はバッチリ！しっかり身についています。",
+  "よく覚えていました！その調子です。",
+  "リベンジ成功！間違えた問題こそ力になります。",
+  "ナイス！苦手をひとつ克服しました。"
+];
+
+// 配列をシャッフルした新しい配列を返す（Fisher–Yates）
+function shuffle(array) {
+  const result = [...array];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+// 現在の問題データを返す
+function currentQuestion() {
+  return questions[queue[position]];
+}
 
 // 指定したテキストを日本語で読み上げる（読み上げ中のものは中断する）
 function speak(text) {
@@ -66,27 +98,32 @@ function playResultSound(isCorrect) {
 
 // 現在の問題文と選択肢を読み上げる
 function speakQuestion() {
-  const q = questions[currentIndex];
-  const choicesText = q.choices.map((c, i) => `${i + 1}番、${c}`).join("。");
+  const q = currentQuestion();
+  const choicesText = currentChoices.map((c, i) => `${i + 1}番、${c.text}`).join("。");
   speak(`${q.text} ${choicesText}`);
 }
 
 // 現在の問題を表示する
 function showQuestion() {
-  const q = questions[currentIndex];
-  progressEl.textContent = `第${currentIndex + 1}問 / 全${questions.length}問`;
+  const q = currentQuestion();
+  progressEl.textContent = isRetry
+    ? `間違えた問題にもう一度挑戦！（${position + 1} / ${queue.length}）`
+    : `第${position + 1}問 / 全${questions.length}問`;
   questionTextEl.textContent = q.text;
   feedbackEl.textContent = "";
   feedbackEl.className = "quiz__feedback";
   nextButton.hidden = true;
   choicesEl.innerHTML = "";
 
-  q.choices.forEach((choice, i) => {
+  // 正解の位置が偏らないよう、表示のたびに選択肢をシャッフルする
+  currentChoices = shuffle(q.choices.map((text, i) => ({ text, isAnswer: i === q.answer })));
+
+  currentChoices.forEach((choice, i) => {
     const li = document.createElement("li");
     const button = document.createElement("button");
     button.type = "button";
     button.className = "choice";
-    button.textContent = choice;
+    button.textContent = choice.text;
     button.addEventListener("click", () => selectAnswer(i));
     li.appendChild(button);
     choicesEl.appendChild(li);
@@ -95,30 +132,45 @@ function showQuestion() {
 
 // 選択肢が押されたときの判定とフィードバック表示
 function selectAnswer(selected) {
-  const q = questions[currentIndex];
+  const q = currentQuestion();
   const buttons = choicesEl.querySelectorAll(".choice");
-  const isCorrect = selected === q.answer;
+  const isCorrect = currentChoices[selected].isAnswer;
 
   buttons.forEach((button, i) => {
     button.disabled = true;
-    if (i === q.answer) button.classList.add("choice--correct");
+    if (currentChoices[i].isAnswer) button.classList.add("choice--correct");
   });
 
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
   playResultSound(isCorrect);
 
   if (isCorrect) {
-    score++;
-    feedbackEl.textContent = `正解！ ${q.explanation}`;
+    if (isRetry) {
+      const message = encouragements[Math.floor(Math.random() * encouragements.length)];
+      feedbackEl.textContent = `正解！ ${message} ${q.explanation}`;
+    } else {
+      score++;
+      feedbackEl.textContent = `正解！ ${q.explanation}`;
+    }
     feedbackEl.classList.add("quiz__feedback--correct");
   } else {
+    // 間違えた問題は最後にもう一度出題する（正解できるまで繰り返す）
+    retryQueue.push(queue[position]);
     buttons[selected].classList.add("choice--wrong");
     feedbackEl.textContent = `不正解… 正解は「${q.choices[q.answer]}」です。${q.explanation}`;
     feedbackEl.classList.add("quiz__feedback--wrong");
   }
 
-  nextButton.textContent = currentIndex === questions.length - 1 ? "結果を見る" : "次へ";
+  const isLast = position === queue.length - 1;
+  if (!isLast) {
+    nextButton.textContent = "次へ";
+  } else if (retryQueue.length > 0) {
+    nextButton.textContent = "間違えた問題に再挑戦";
+  } else {
+    nextButton.textContent = "結果を見る";
+  }
   nextButton.hidden = false;
+  nextButton.focus();
 }
 
 // 合計スコアを表示する
@@ -134,16 +186,26 @@ function showResult() {
   } else if (rate >= 0.8) {
     scoreMessageEl.textContent = "素晴らしい！実践でもしっかり活かせています。";
   } else if (rate >= 0.6) {
-    scoreMessageEl.textContent = "good！あと一歩で栄養マスターです。";
+    scoreMessageEl.textContent = "いい調子！あと一歩で栄養マスターです。";
   } else if (rate >= 0.4) {
     scoreMessageEl.textContent = "基本は押さえています。解説を読み返してみましょう。";
   } else {
     scoreMessageEl.textContent = "ここからが伸びしろ。もう一度挑戦してみましょう！";
   }
+
+  // 復習をした場合は、すべてクリアしたことを伝える
+  if (score < questions.length) {
+    scoreMessageEl.textContent += " 間違えた問題もすべてクリアできました！";
+  }
 }
 
-function restart() {
-  currentIndex = 0;
+// クイズを最初から始める
+function start() {
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  queue = questions.map((_, i) => i);
+  position = 0;
+  retryQueue = [];
+  isRetry = false;
   score = 0;
   resultScreen.hidden = true;
   questionScreen.hidden = false;
@@ -157,14 +219,21 @@ speakButton.addEventListener("click", speakQuestion);
 
 nextButton.addEventListener("click", () => {
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-  currentIndex++;
-  if (currentIndex < questions.length) {
+  position++;
+  if (position < queue.length) {
+    showQuestion();
+  } else if (retryQueue.length > 0) {
+    // 間違えた問題だけを集めて、もう一度出題する
+    queue = retryQueue;
+    retryQueue = [];
+    position = 0;
+    isRetry = true;
     showQuestion();
   } else {
     showResult();
   }
 });
 
-restartButton.addEventListener("click", restart);
+restartButton.addEventListener("click", start);
 
-showQuestion();
+start();
