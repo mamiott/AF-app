@@ -63,7 +63,8 @@ let audioContext = null;
 function playTone(freq, start, duration, type = "sine", volume = 0.2) {
   const osc = audioContext.createOscillator();
   const gain = audioContext.createGain();
-  const t = audioContext.currentTime + start;
+  // ほんの少し先に予約して、音の頭が欠けたり鳴らなかったりするのを防ぐ
+  const t = audioContext.currentTime + 0.03 + start;
   osc.type = type;
   osc.frequency.value = freq;
   gain.gain.setValueAtTime(volume, t);
@@ -78,10 +79,28 @@ function playTone(freq, start, duration, type = "sine", volume = 0.2) {
 function ensureAudio() {
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
   if (!AudioCtx) return false;
-  if (!audioContext) audioContext = new AudioCtx();
-  if (audioContext.state === "suspended") audioContext.resume();
+  if (!audioContext) {
+    // iPhone のマナーモード中でも効果音が鳴るようにする（Safari 16.4 以降）
+    if (navigator.audioSession) navigator.audioSession.type = "playback";
+    audioContext = new AudioCtx();
+  }
+  // suspended（自動再生制限）や interrupted（iOS で中断された）状態から再開する
+  if (audioContext.state !== "running") audioContext.resume();
   return true;
 }
+
+// 最初に画面に触れた時点で音を鳴らせる状態にしておく（ブラウザの自動再生制限への対策）
+function unlockAudio() {
+  if (!ensureAudio()) return;
+  // 無音を一瞬再生して、iOS Safari で音声出力を有効にする
+  const buffer = audioContext.createBuffer(1, 1, 22050);
+  const source = audioContext.createBufferSource();
+  source.buffer = buffer;
+  source.connect(audioContext.destination);
+  source.start(0);
+}
+document.addEventListener("pointerdown", unlockAudio, { once: true });
+document.addEventListener("keydown", unlockAudio, { once: true });
 
 // ボタンを押したときの軽いクリック音
 function playClickSound() {
